@@ -22,14 +22,11 @@ namespace exercise.webapi.Repository
 
         public async Task<Book> GetBookAsync(int bookId)
         {
-            var response = await _db.Books.FindAsync(bookId);
-            if (response == null) { return null; }
-            response.Author = await getAuthorById(response.AuthorId);
-            //BookGet book = new BookGet(response);
-            return response;
+            var response = await _db.Books.Include(b => b.Author).FirstOrDefaultAsync(b => b.Id == bookId);
+            return response is null ? null : response;
         }
 
-        private async Task<Author> getAuthorById(int authorId)
+        public async Task<Author> getAuthorById(int authorId)
         {
             return await _db.Authors.FindAsync(authorId);
         }
@@ -40,6 +37,27 @@ namespace exercise.webapi.Repository
             await _db.SaveChangesAsync();
             entity.Author = await getAuthorById(authorId);
             return entity;
+        }
+
+        public async Task<Book> DeleteAsync(int bookId)
+        {
+            var response = await GetBookAsync(bookId);
+            _db.Books.Remove(response);
+            await _db.SaveChangesAsync();
+            return response;
+        }
+
+        public async Task<Book> CreateAsync(string title, int authorId)
+        {
+            Book newBook = new Book() { Id = _db.Books.Last().Id + 1,
+                                        Title = title,
+                                        AuthorId = authorId,
+                                        Author = getAuthorById(authorId).Result};
+            await _db.AddAsync(newBook);
+            await _db.SaveChangesAsync();
+            return newBook;
+
+
         }
     }
 }

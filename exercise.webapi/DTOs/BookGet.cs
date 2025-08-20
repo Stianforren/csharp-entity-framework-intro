@@ -5,7 +5,6 @@ namespace exercise.webapi.DTOs
     public class BookGet
     {
         public string Title { get; set; }
-        //public int AuthorId { get; set; }
         public AuthorGet author { get; set; }
 
         public BookGet(Book book)

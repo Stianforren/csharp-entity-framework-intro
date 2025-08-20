@@ -12,6 +12,8 @@ namespace exercise.webapi.Endpoints
             app.MapGet("/books", GetBooks);
             app.MapGet("/book{id}", GetBookById);
             app.MapPut("/book{id}", UpdateBook);
+            app.MapDelete("book{id}", DeleteBook);
+            app.MapPost("/", AddBook);
         }
 
         private static async Task<IResult> GetBooks(IBookRepository bookRepository)
@@ -41,6 +43,20 @@ namespace exercise.webapi.Endpoints
             var response = await repository.UpdateAsync(entity, authorId);
             BookGet book = new BookGet(response);
             return TypedResults.Ok(book);
+        }
+
+        private static async Task<IResult> DeleteBook(IBookRepository repository, int bookId)
+        {
+            var response = await repository.DeleteAsync(bookId);
+            return TypedResults.Ok(new BookGet(response));
+        }
+        private static async Task<IResult> AddBook(IBookRepository repository, string title, int authorId)
+        {
+            var authorFound = repository.getAuthorById(authorId);
+            if (authorFound.Result is null) { return TypedResults.NotFound(authorId);}
+            var response = repository.CreateAsync(title, authorId);
+            return TypedResults.Ok(new BookGet(response.Result));
+
         }
     }
 }
